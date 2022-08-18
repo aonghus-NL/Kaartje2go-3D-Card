@@ -1,0 +1,27 @@
+{
+  "name": "Kaartje2go-3D-Card",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack serve --config ./src/webpack.dev.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.17",
+    "@types/three": "^0.137.0",
+    "file-loader": "^6.2.0",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.5.5",
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.7.4",
+    "webpack-merge": "^5.8.0"
+  },
+  "dependencies": {
+    "@types/dat.gui": "^0.7.7",
+    "dat.gui": "^0.7.7",
+    "three": "^0.137.5",
+    "threejs-object-controls": "^1.2.8"
+  }
+}
