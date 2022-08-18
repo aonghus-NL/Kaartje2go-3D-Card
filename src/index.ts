@@ -1,8 +1,7 @@
 // Vendors
-import { CameraHelper, Color, Object3D, PerspectiveCamera, Scene } from 'three';
-import { ObjectControls } from 'threejs-object-controls';
-import Stats from 'three/examples/jsm/libs/stats.module';
-import { GUI } from 'dat.gui';
+import { Color, Object3D, PerspectiveCamera, Scene } from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
 
 // Helpers
 import addAmbientLight from './light/ambientLight';
@@ -15,47 +14,11 @@ import createWebGLRenderer from './renderer/webGL';
 // Typings
 import { CardFormat, CardPages, CardImages } from './types/card';
 
-// Assets
-import squareFrontImg from './assets/square-double-front.jpg';
-import squareInsideRightImg from './assets/square-double-inside-right.jpg';
-import squareInsideLeftImg from './assets/square-double-inside-left.jpg';
-import squareBackImg from './assets/square-double-back.jpg';
-
-import rectpFrontImg from './assets/rectp-double-front.jpg';
-import rectpInsideRightImg from './assets/rectp-double-inside-right.jpg';
-import rectpInsideLeftImg from './assets/rectp-double-inside-left.jpg';
-import rectpBackImg from './assets/rectp-double-back.jpg';
-
 import addHemisphereLight from './light/hemisphereLight';
+import THREE = require('three');
+import { GUI } from 'dat.gui';
 
-const DOM_ELEMENT = document.querySelector('.card');
-
-const images: Record<CardFormat, CardImages> = {
-    'square': {
-        front: squareFrontImg,
-        insideLeft: squareInsideLeftImg,
-        insideRight: squareInsideRightImg,
-        back: squareBackImg
-    },
-    'portrait': {
-        front: rectpFrontImg,
-        insideLeft: rectpInsideLeftImg,
-        insideRight: rectpInsideRightImg,
-        back: rectpBackImg
-    },
-    'landscape': {
-        front: rectpFrontImg,
-        insideLeft: rectpInsideLeftImg,
-        insideRight: rectpInsideRightImg,
-        back: rectpBackImg
-    },
-    'skyscraper': {
-        front: rectpFrontImg,
-        insideLeft: rectpInsideLeftImg,
-        insideRight: rectpInsideRightImg,
-        back: rectpBackImg
-    }
-};
+window.__DEBUG__ = false;
 
 function getTextures(cardImages: CardImages) {
     const images = [cardImages.front, cardImages.back];
@@ -63,136 +26,198 @@ function getTextures(cardImages: CardImages) {
     if (cardImages.insideLeft) {
         images.push(cardImages.insideLeft);
     }
-
+    
     if (cardImages.insideRight) {
         images.push(cardImages.insideRight);
     }
+    
+    if (cardImages.foilSpecular) {
+        images.push(cardImages.foilSpecular);
+    }
 
-    return loadTextures(images);
+    const textures =  loadTextures(images);
+    textures.forEach(texture => {
+        texture.minFilter = THREE.NearestFilter;
+        texture.anisotropy = 16;
+    });
+
+    return textures;
 }
 
-function addLight(scene: Scene) {
+function addLight(scene: Scene, cardFormat: CardFormat) {
     addHemisphereLight(scene);
-    addAmbientLight(scene, 0xffffff, 0.4);
-    addDirectionalLight(scene, 0xffffff, 0.4, {
-        x: 2.5,
-        y: 2.5,
-        z: 2.5
+    addAmbientLight(scene, 0xffffff, 0.7);
+    const intensity = 0.3;   
+    addDirectionalLight(scene, 0xffffff, intensity, {
+        x: 0,
+        y: 10.5,
+        z: 10
     });
-    addDirectionalLight(scene, 0xffffff, 0.4, {
-        x: -2.5,
-        y: 2.5,
-        z: 2.5
-    });
+    addDirectionalLight(scene, 0xffffff, 0.1, {
+        x: 0,
+        y: 10,
+        z: 0
+    }, false);
+    addDirectionalLight(scene, 0xffffff, 0.1, {
+        x: -6,
+        y: 1,
+        z: 0
+    }, false);
+    addDirectionalLight(scene, 0xffffff, 0.1, {
+        x: 5,
+        y: 5.5,
+        z: -1
+    }, false);
 }
 
 function addCard(scene: Scene, cardFormat: CardFormat, cardPages: CardPages, cardImages: CardImages) {
-    const [frontTexture, backTexture, insideLeftTexture, insideRightTexture] = getTextures(cardImages);
-
+    const [frontTexture, backTexture, insideLeftTexture, insideRightTexture, foilSpecularTexture] = getTextures(cardImages);
+    
     const card = new Object3D();
     if (cardPages === 'single') {
-        card.add(createPage(cardFormat, frontTexture, backTexture));
+        card.add(createPage(cardFormat, frontTexture, backTexture, cardPages, false));
     } else {
-        card.add(createPage(cardFormat, frontTexture, insideLeftTexture, true));
-        card.add(createPage(cardFormat, insideRightTexture, backTexture));
+        card.add(createPage(cardFormat, frontTexture, insideLeftTexture, cardPages, true, foilSpecularTexture));
+        card.add(createPage(cardFormat, insideRightTexture, backTexture, cardPages, false));
     }
 
     if (cardFormat === 'landscape') {
         card.rotateX(-0.3);
     } else {
-        card.rotateY(0.3);
+        card.rotateY(-0.3);
     }
 
-    card.castShadow = true;
+    card.traverse(object => { 
+        if (object.isObject3D) {
+            object.castShadow = true; 
+            object.receiveShadow = false;
+        }
+    });
+
     scene.add(card);
 
     return card;
 }
 
-function addControls(camera: PerspectiveCamera, cardFormat: CardFormat, domElement: HTMLCanvasElement, card: Object3D) {
-    const controls = new ObjectControls(camera, domElement, card);
-    if (cardFormat === 'landscape') {
-        controls.enableVerticalRotation();
-        controls.disableHorizontalRotation();
-    } else {
-        controls.disableVerticalRotation();
-        controls.enableHorizontalRotation();
-    }
-    controls.setRotationSpeed(0.15);
-    controls.setDistance(2, 15);
-    controls.setZoomSpeed(1);
-    // controls.enableVerticalRotation();
+function addPlane(scene: Scene, cardFormat: CardFormat) {
+    const planeGeometry = new THREE.PlaneGeometry(30, 30, 32, 32);
+    const color = new Color("rgb(180, 180, 180)") 
+    const planeMaterial = new THREE.MeshStandardMaterial( { color: color } )
+    const plane = new THREE.Mesh( planeGeometry, planeMaterial );
+    plane.position.y = -3;
+    plane.rotation.x = Math.PI / -2;
+    plane.receiveShadow = true;
+    scene.add( plane );
 }
 
-function startApplication(cardFormat: CardFormat, cardPages: CardPages, cardImages: CardImages, domElement: Element) {
+function addGUI(card: Object3D, cardFormat: CardFormat, domElement: Element) {
+    const front = card.getObjectByName("front");
+
+    if (!front) {
+        return;
+    }
+
+    const gui = new GUI({ autoPlace: false })
+    gui.width = 150;
+    gui.domElement.style.position = "absolute";
+    gui.domElement.style.top = "0";
+    gui.domElement.style.right = "0";
+    domElement.appendChild(gui.domElement);
+
+    const cubeFolder = gui.addFolder('Card')
+    cubeFolder.add(front.rotation, cardFormat === "landscape" ? 'x' : 'y', Math.PI * 1.1, Math.PI * 1.99).name("open");
+    cubeFolder.open();
+    gui.open();
+
+}
+
+function addControls(camera: PerspectiveCamera, domElement: HTMLCanvasElement) {
+    const control = new OrbitControls(camera, domElement);
+    control.autoRotate = true;
+    return control;
+}
+
+export function generateCardPreview(cardFormat: CardFormat, cardPages: CardPages, cardImages: CardImages, domElement: Element) {
     console.info('Running for', cardFormat, cardPages, cardImages, domElement);
 
     const scene = new Scene();
-    scene.background = new Color(0x000000);
-
-    const renderer = createWebGLRenderer(DOM_ELEMENT);
-    const camera = createPerspectiveCamera(scene);
-
-    addLight(scene);
+    const renderer = createWebGLRenderer(domElement);
+    const camera = createPerspectiveCamera(scene, domElement);
+    const control = addControls(camera, renderer.domElement);
+    control.addEventListener('start', function(){
+        control.autoRotate = false;
+    });
+    
+    __DEBUG__ && scene.add(new THREE.AxesHelper(500));
+    scene.background = new Color("rgb(230, 230, 230)"); 
+    
     const card = addCard(scene, cardFormat, cardPages, cardImages);
-    addControls(camera, cardFormat, renderer.domElement, card);
-
-    // Stats
-    // const stats = Stats();
-    // document.body.appendChild(stats.dom);
-
+    addLight(scene, cardFormat);
+    addPlane(scene, cardFormat);
+    
     // GUI
-    // const gui = new GUI()
-
-    // const cubeFolder = gui.addFolder('Card')
-    // cubeFolder.add(card.rotation, 'x', 0, Math.PI * 2);
-    // cubeFolder.add(card.rotation, 'y', 0, Math.PI * 2);
-    // cubeFolder.add(card.rotation, 'z', 0, Math.PI * 2);
-    // cubeFolder.open();
-
-    // const cameraFolder = gui.addFolder('Camera');
-    // cameraFolder.add(camera.position, 'z', 0, 100);
-    // cameraFolder.open();
-
-    // const lightFolder = gui.addFolder('Ambient Light');
-    // lightFolder.add(ambientLight, 'intensity', 0, 1);
-    // lightFolder.open();
-
-    // const dirLight1Folder = gui.addFolder('Directional Light 1');
-    // dirLight1Folder.add(dirLight1.position, 'x', -10, 10);
-    // dirLight1Folder.add(dirLight1.position, 'y', -10, 10);
-    // dirLight1Folder.add(dirLight1.position, 'z', -10, 10);
-    // dirLight1Folder.open();
-
-    // const dirLight2Folder = gui.addFolder('Directional Light 2');
-    // dirLight2Folder.add(dirLight2.position, 'x', -10, 10);
-    // dirLight2Folder.add(dirLight2.position, 'y', -10, 10);
-    // dirLight2Folder.add(dirLight2.position, 'z', -10, 10);
-    // dirLight2Folder.open();
-
-    // const hemisphereFolder = gui.addFolder('Hemispere Light');
-    // hemisphereFolder.add(hemisphereLight, 'intensity', 0, 1);
-
+    addGUI(card, cardFormat, domElement);
+    
     // Animator
     function render() {
         requestAnimationFrame(render);
-
+        resizeCanvasToDisplaySize();
+        control.update();
         renderer.render(scene, camera);
-        // stats.update();
     }
-
+    
     // Resize
-    window.addEventListener('resize', onWindowResize, false)
-    function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
+    function resizeCanvasToDisplaySize() {
+        camera.aspect = domElement.clientWidth / domElement.clientHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        render();
+        renderer.setSize(domElement.clientWidth, domElement.clientHeight);
     }
 
     render();
 }
 
-if (DOM_ELEMENT) {
-    startApplication('landscape', 'double', images['square'], DOM_ELEMENT);
-}
+// Testing
+// import squareFrontImg from './assets/square-double-front.jpg';
+// import squareInsideRightImg from './assets/square-double-inside-right.jpg';
+// import squareInsideLeftImg from './assets/square-double-inside-left.jpg';
+// import squareBackImg from './assets/square-double-back.jpg';
+
+// import rectpFrontImg from './assets/rectp-double-front.jpg';
+// import rectpInsideRightImg from './assets/rectp-double-inside-right.jpg';
+// import rectpInsideLeftImg from './assets/rectp-double-inside-left.jpg';
+// import rectpBackImg from './assets/rectp-double-back.jpg';
+// import rectpSpecularImg from './assets/rectp-double-specular.jpg';
+
+// const images: Record<CardFormat, CardImages> = {
+//     'square': {
+//         front: squareFrontImg,
+//         insideLeft: squareInsideLeftImg,
+//         insideRight: squareInsideRightImg,
+//         back: squareBackImg
+//     },
+//     'portrait': {
+//         front: rectpFrontImg,
+//         insideLeft: rectpInsideLeftImg,
+//         insideRight: rectpInsideRightImg,
+//         back: rectpBackImg,
+//         foilSpecular: rectpSpecularImg
+//     },
+//     'landscape': {
+//         front: rectpFrontImg,
+//         insideLeft: rectpInsideLeftImg,
+//         insideRight: rectpInsideRightImg,
+//         back: rectpBackImg,
+//     },
+//     'skyscraper': {
+//         front: rectpFrontImg,
+//         insideLeft: rectpInsideLeftImg,
+//         insideRight: rectpInsideRightImg,
+//         back: rectpBackImg
+//     }
+// };
+
+// const DOM_ELEMENT = document.querySelector('.card');
+
+// if (DOM_ELEMENT) {
+//     generateCardPreview('landscape', 'double', images['portrait'], DOM_ELEMENT);
+// }

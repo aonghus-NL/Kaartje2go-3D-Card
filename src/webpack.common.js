@@ -1,4 +1,5 @@
-const path = require('path')
+const path = require('path');
+const TypescriptDeclarationPlugin = require('typescript-declaration-webpack-plugin');
 
 module.exports = {
     entry: './src/index.ts',
@@ -17,10 +18,20 @@ module.exports = {
         ],
     },
     resolve: {
+        modules: [
+            path.join(__dirname, 'src'),
+            'node_modules'
+        ],
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, '../dist'),
+        libraryTarget: 'umd',
     },
+    plugins: [
+        new TypescriptDeclarationPlugin({
+            out: 'bundle.d.ts',
+        })
+    ]
 }

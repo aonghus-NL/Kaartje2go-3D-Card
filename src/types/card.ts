@@ -7,4 +7,5 @@ export interface CardImages {
     insideLeft?: string;
     insideRight?: string;
     back: string;
+    foilSpecular?: string;
 }

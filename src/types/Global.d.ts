@@ -10,4 +10,4 @@ declare module "*.png" {
 
 declare module 'threejs-object-controls';
 
-declare const __DEBUG__: boolean;
+declare var __DEBUG__: boolean;

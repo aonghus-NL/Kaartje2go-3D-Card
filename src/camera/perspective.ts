@@ -1,11 +1,11 @@
 import { PerspectiveCamera, CameraHelper, Scene } from 'three';
 
-const createPerspectiveCamera = (scene: Scene) => {
-    const camera = new PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
+const createPerspectiveCamera = (scene: Scene, domElement: Element) => {
+    const camera = new PerspectiveCamera(50, domElement.clientWidth / domElement.clientHeight, 1, 5000);
     camera.position.set( 0, 0, 15 );
 
-    const cameraHelper = new CameraHelper(camera);
-    scene.add(cameraHelper);
+    // const cameraHelper = new CameraHelper(camera);
+    // scene.add(cameraHelper);
 
     return camera;
 };
