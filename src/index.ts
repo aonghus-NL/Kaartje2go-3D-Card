@@ -242,8 +242,8 @@ export function generateCardPreview(cardFormat: CardFormat, cardPages: CardPages
     function handleClick(event: MouseEvent) {
         event.preventDefault();
 
-        mouse.x = event.clientX / window.innerWidth * 2 - 1;
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        mouse.x = (event.clientX / domElement.clientWidth) * 2 - 1;
+        mouse.y = -(event.clientY / domElement.clientHeight) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
 
