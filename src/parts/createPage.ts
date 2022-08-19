@@ -4,7 +4,6 @@ import createPlaneGeometry from '../geometry/planeGeometry';
 import isAbsolutePath from '../helpers/location/isAbsolutePath';
 import createMeshPhongMaterial from '../material/meshPhongMaterial';
 import { CardFormat, CardPages } from '../types/card';
-import specular from '../assets/specular.jpg'
 
 const CARD_SIZES: Record<CardFormat, [number, number]> = {
     'square': [4, 4],
@@ -46,7 +45,7 @@ const createPage = (cardFormat: CardFormat, frontTexture: Texture, backTexture: 
     if (isFront) {
         if (specularTexture) {
             material1.specularMap = specularTexture;
-            material1.specular = new THREE.Color(0x333333);
+            material1.specular = new THREE.Color(0x777777);
             material1.shininess = 100;
             material1.reflectivity = 0;
         }
@@ -57,9 +56,18 @@ const createPage = (cardFormat: CardFormat, frontTexture: Texture, backTexture: 
         }
         page.rotation.set(rotation[0], rotation[1], 0);
     }
-    else if (cardFormat === 'portrait' && cardPages === 'single' && !isAbsolutePath(backTexture.name)) {
-        backTexture.rotation = THREE.MathUtils.degToRad(90);
-        backTexture.center = new THREE.Vector2(0.5, 0.5);
+    else {
+        if (specularTexture) {
+            material2.specularMap = specularTexture;
+            material2.specular = new THREE.Color(0x777777);
+            material2.shininess = 200;
+            material2.reflectivity = 0;
+        }
+
+        if (cardFormat === 'portrait' && cardPages === 'single' && !isAbsolutePath(backTexture.name)) {
+            backTexture.rotation = THREE.MathUtils.degToRad(90);
+            backTexture.center = new THREE.Vector2(0.5, 0.5);
+        }
     }
 
     page.position.set(pivotOffset[0], pivotOffset[1], pivotOffset[2]);

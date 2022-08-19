@@ -1,4 +1,4 @@
-import { WebGLRenderer } from 'three';
+import { sRGBEncoding, WebGLRenderer } from 'three';
 
 const createWebGLRenderer = (canvas: Element | null) => {
     const renderer = new WebGLRenderer({ antialias: true });

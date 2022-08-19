@@ -1,5 +1,6 @@
 *.tgz
 dist/*
+!dist/index.html
 
 # Dependency directory
 node_modules

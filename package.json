@@ -26,6 +26,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "@tweenjs/tween.js": "^18.6.4",
     "@types/dat.gui": "^0.7.7",
     "dat.gui": "^0.7.7",
     "three": "^0.137.5",

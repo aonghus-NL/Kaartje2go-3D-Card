@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
-        "moduleResolution": "node",
+        "target": "ESNext",
+        "module": "CommonJS",
         "strict": true,
         "typeRoots": [
             "node_modules/@types",
