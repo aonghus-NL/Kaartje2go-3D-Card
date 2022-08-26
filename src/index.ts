@@ -55,13 +55,13 @@ function getTextures(cardImages: CardImages) {
 function addLight(scene: Scene, cardFormat: CardFormat) {
     addHemisphereLight(scene);
     addAmbientLight(scene, 0xffffff, 0.7);
-    const intensity = 0.2;
+    const intensity = 0.1;
     addDirectionalLight(scene, 0xffffff, intensity, {
         x: 0,
         y: 5,
         z: 10
     });
-    addDirectionalLight(scene, 0x555555, 0.1, {
+    addDirectionalLight(scene, 0x555555, 0.05, {
         x: 0,
         y: 0,
         z: 10
@@ -242,8 +242,8 @@ export function generateCardPreview(cardFormat: CardFormat, cardPages: CardPages
     function handleClick(event: MouseEvent) {
         event.preventDefault();
 
-        mouse.x = (event.clientX / domElement.clientWidth) * 2 - 1;
-        mouse.y = -(event.clientY / domElement.clientHeight) * 2 + 1;
+        mouse.x = (event.offsetX / domElement.clientWidth) * 2 - 1;
+        mouse.y = -(event.offsetY / domElement.clientHeight) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
 
@@ -254,55 +254,55 @@ export function generateCardPreview(cardFormat: CardFormat, cardPages: CardPages
         }
     }
 
-    window.addEventListener('mousedown', handleClick)
+    domElement.parentElement?.addEventListener('mousedown', handleClick);
 
     render();
 }
 
 // Testing
-import squareFrontImg from './assets/square-double-front.jpg';
-import squareInsideRightImg from './assets/square-double-inside-right.jpg';
-import squareInsideLeftImg from './assets/square-double-inside-left.jpg';
-import squareBackImg from './assets/square-double-back.jpg';
+// import squareFrontImg from './assets/square-double-front.jpg';
+// import squareInsideRightImg from './assets/square-double-inside-right.jpg';
+// import squareInsideLeftImg from './assets/square-double-inside-left.jpg';
+// import squareBackImg from './assets/square-double-back.jpg';
 
-import rectpFrontImg from './assets/rectp-double-front.jpg';
-import rectpInsideRightImg from './assets/rectp-double-inside-right.jpg';
-import rectpInsideLeftImg from './assets/rectp-double-inside-left.jpg';
-import rectpBackImg from './assets/rectp-double-back.jpg';
-import rectpSpecularFrontImg from './assets/rectp-double-specular.jpg';
-import rectpSpecularBackImg from './assets/rectp-double-back-specular.jpg';
+// import rectpFrontImg from './assets/rectp-double-front.jpg';
+// import rectpInsideRightImg from './assets/rectp-double-inside-right.jpg';
+// import rectpInsideLeftImg from './assets/rectp-double-inside-left.jpg';
+// import rectpBackImg from './assets/rectp-double-back.jpg';
+// import rectpSpecularFrontImg from './assets/rectp-double-specular.jpg';
+// import rectpSpecularBackImg from './assets/rectp-double-back-specular.jpg';
 
-const images: Record<CardFormat, CardImages> = {
-    'square': {
-        front: squareFrontImg,
-        insideLeft: squareInsideLeftImg,
-        insideRight: squareInsideRightImg,
-        back: squareBackImg
-    },
-    'portrait': {
-        front: rectpFrontImg,
-        insideLeft: rectpInsideLeftImg,
-        insideRight: rectpInsideRightImg,
-        back: rectpBackImg,
-        foilSpecularFront: rectpSpecularFrontImg,
-        foilSpecularBack: rectpSpecularBackImg
-    },
-    'landscape': {
-        front: rectpFrontImg,
-        insideLeft: rectpInsideLeftImg,
-        insideRight: rectpInsideRightImg,
-        back: rectpBackImg,
-    },
-    'skyscraper': {
-        front: rectpFrontImg,
-        insideLeft: rectpInsideLeftImg,
-        insideRight: rectpInsideRightImg,
-        back: rectpBackImg
-    }
-};
+// const images: Record<CardFormat, CardImages> = {
+//     'square': {
+//         front: squareFrontImg,
+//         insideLeft: squareInsideLeftImg,
+//         insideRight: squareInsideRightImg,
+//         back: squareBackImg
+//     },
+//     'portrait': {
+//         front: rectpFrontImg,
+//         insideLeft: rectpInsideLeftImg,
+//         insideRight: rectpInsideRightImg,
+//         back: rectpBackImg,
+//         foilSpecularFront: rectpSpecularFrontImg,
+//         foilSpecularBack: rectpSpecularBackImg
+//     },
+//     'landscape': {
+//         front: rectpFrontImg,
+//         insideLeft: rectpInsideLeftImg,
+//         insideRight: rectpInsideRightImg,
+//         back: rectpBackImg,
+//     },
+//     'skyscraper': {
+//         front: rectpFrontImg,
+//         insideLeft: rectpInsideLeftImg,
+//         insideRight: rectpInsideRightImg,
+//         back: rectpBackImg
+//     }
+// };
 
-const DOM_ELEMENT = document.querySelector('.card');
+// const DOM_ELEMENT = document.querySelector('.card');
 
-if (DOM_ELEMENT) {
-    generateCardPreview('square', 'double', images['portrait'], DOM_ELEMENT);
-}
+// if (DOM_ELEMENT) {
+//     generateCardPreview('landscape', 'double', images['square'], DOM_ELEMENT);
+// }
