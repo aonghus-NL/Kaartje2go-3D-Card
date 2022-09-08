@@ -9,7 +9,7 @@ import TWEEN = require('@tweenjs/tween.js')
 import addAmbientLight from './light/ambientLight';
 import addDirectionalLight from './light/directionalLight';
 import loadTextures from './loaders/textures';
-import createPage from './parts/createPage';
+import createPage, { CardFoilTextures } from './parts/createPage';
 import createPerspectiveCamera from './camera/perspective';
 import createWebGLRenderer from './renderer/webGL';
 import addHemisphereLight from './light/hemisphereLight';
@@ -58,7 +58,7 @@ function addLight(scene: Scene, cardFormat: CardFormat) {
     const intensity = 0.1;
     addDirectionalLight(scene, 0xffffff, intensity, {
         x: 0,
-        y: 5,
+        y: 2,
         z: 10
     });
     addDirectionalLight(scene, 0x555555, 0.05, {
@@ -107,13 +107,18 @@ function addCard(scene: Scene, cardFormat: CardFormat, cardPages: CardPages, car
         foilSpecularFrontTexture,
         foilSpecularBackTexture
     ] = getTextures(cardImages);
+
+    const foilTextures: CardFoilTextures = {
+        frontTexture: foilSpecularFrontTexture,
+        backTexture: foilSpecularBackTexture
+    }
     
     const card = new Object3D();
     if (cardPages === 'single') {
-        card.add(createPage(cardFormat, frontTexture, backTexture, cardPages, false, foilSpecularBackTexture));
+        card.add(createPage(cardFormat, frontTexture, backTexture, cardPages, false, foilTextures));
     } else {
-        card.add(createPage(cardFormat, frontTexture, insideLeftTexture, cardPages, true, foilSpecularFrontTexture));
-        card.add(createPage(cardFormat, insideRightTexture, backTexture, cardPages, false, foilSpecularBackTexture));
+        card.add(createPage(cardFormat, frontTexture, insideLeftTexture, cardPages, true, foilTextures));
+        card.add(createPage(cardFormat, insideRightTexture, backTexture, cardPages, false, foilTextures));
     }
 
     if (cardFormat === 'landscape') {
@@ -260,49 +265,49 @@ export function generateCardPreview(cardFormat: CardFormat, cardPages: CardPages
 }
 
 // Testing
-// import squareFrontImg from './assets/square-double-front.jpg';
-// import squareInsideRightImg from './assets/square-double-inside-right.jpg';
-// import squareInsideLeftImg from './assets/square-double-inside-left.jpg';
-// import squareBackImg from './assets/square-double-back.jpg';
+import squareFrontImg from './assets/square-double-front.jpg';
+import squareInsideRightImg from './assets/square-double-inside-right.jpg';
+import squareInsideLeftImg from './assets/square-double-inside-left.jpg';
+import squareBackImg from './assets/square-double-back.jpg';
 
-// import rectpFrontImg from './assets/rectp-double-front.jpg';
-// import rectpInsideRightImg from './assets/rectp-double-inside-right.jpg';
-// import rectpInsideLeftImg from './assets/rectp-double-inside-left.jpg';
-// import rectpBackImg from './assets/rectp-double-back.jpg';
-// import rectpSpecularFrontImg from './assets/rectp-double-specular.jpg';
-// import rectpSpecularBackImg from './assets/rectp-double-back-specular.jpg';
+import rectpFrontImg from './assets/rectp-double-front.jpg';
+import rectpInsideRightImg from './assets/rectp-double-inside-right.jpg';
+import rectpInsideLeftImg from './assets/rectp-double-inside-left.jpg';
+import rectpBackImg from './assets/rectp-double-back.jpg';
+import rectpSpecularFrontImg from './assets/rectp-double-specular.jpg';
+import rectpSpecularBackImg from './assets/rectp-double-back-specular.jpg';
 
-// const images: Record<CardFormat, CardImages> = {
-//     'square': {
-//         front: squareFrontImg,
-//         insideLeft: squareInsideLeftImg,
-//         insideRight: squareInsideRightImg,
-//         back: squareBackImg
-//     },
-//     'portrait': {
-//         front: rectpFrontImg,
-//         insideLeft: rectpInsideLeftImg,
-//         insideRight: rectpInsideRightImg,
-//         back: rectpBackImg,
-//         foilSpecularFront: rectpSpecularFrontImg,
-//         foilSpecularBack: rectpSpecularBackImg
-//     },
-//     'landscape': {
-//         front: rectpFrontImg,
-//         insideLeft: rectpInsideLeftImg,
-//         insideRight: rectpInsideRightImg,
-//         back: rectpBackImg,
-//     },
-//     'skyscraper': {
-//         front: rectpFrontImg,
-//         insideLeft: rectpInsideLeftImg,
-//         insideRight: rectpInsideRightImg,
-//         back: rectpBackImg
-//     }
-// };
+const images: Record<CardFormat, CardImages> = {
+    'square': {
+        front: squareFrontImg,
+        insideLeft: squareInsideLeftImg,
+        insideRight: squareInsideRightImg,
+        back: squareBackImg
+    },
+    'portrait': {
+        front: rectpFrontImg,
+        insideLeft: rectpInsideLeftImg,
+        insideRight: rectpInsideRightImg,
+        back: rectpBackImg,
+        foilSpecularFront: rectpSpecularFrontImg,
+        foilSpecularBack: rectpSpecularBackImg
+    },
+    'landscape': {
+        front: rectpFrontImg,
+        insideLeft: rectpInsideLeftImg,
+        insideRight: rectpInsideRightImg,
+        back: rectpBackImg,
+    },
+    'skyscraper': {
+        front: rectpFrontImg,
+        insideLeft: rectpInsideLeftImg,
+        insideRight: rectpInsideRightImg,
+        back: rectpBackImg
+    }
+};
 
-// const DOM_ELEMENT = document.querySelector('.card');
+const DOM_ELEMENT = document.querySelector('.card');
 
-// if (DOM_ELEMENT) {
-//     generateCardPreview('landscape', 'double', images['square'], DOM_ELEMENT);
-// }
+if (DOM_ELEMENT) {
+    generateCardPreview('landscape', 'single', images['portrait'], DOM_ELEMENT);
+}
